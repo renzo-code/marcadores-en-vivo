@@ -96,6 +96,8 @@ class MarcadoresEnVivo extends React.Component{
           [names[0]]: item[0],
           [names[1]]: item[1],
           [names[2]]: item[2],
+          [names[3]]: item[3],
+          [names[4]]: item[4]
         }
       }
     })
@@ -166,7 +168,7 @@ class MarcadoresEnVivo extends React.Component{
       goleadoresEquipo1,
       goleadoresEquipo2
     } = this.state    
-    console.log('listaMarcador', tarjetasEquipo2, tarjetasEquipo1)
+    console.log('listaMarcador', listaEstadioHora)
   return(
     <>
       <Redirect target="_blank" href={listaEstadioHora.link_nota}>
@@ -210,7 +212,7 @@ class MarcadoresEnVivo extends React.Component{
             </WrapperPais>
             <Marcador>{listaMarcador[0]?.marcador}</Marcador>
             <EnVivo>
-              <TituloPrincipal>EN VIVO</TituloPrincipal>
+              <TituloPrincipal estadoColor={listaEstadioHora.estado_color} >{listaEstadioHora.estado}</TituloPrincipal>
               <TiempoPartido>{listaEstadioHora.hora}</TiempoPartido>
               <Estadio>{listaEstadioHora.estadio}</Estadio>
             </EnVivo>
@@ -308,7 +310,7 @@ const TituloPrincipal = styled.h2`
   position : relative;
   font-size: 11px;
   text-align: center;
-  color: #00CA00;
+  color: ${(props) => props.estadoColor};
   font-family: 'Roboto', sans-serif;
   &::after{
     position: absolute;
@@ -316,7 +318,7 @@ const TituloPrincipal = styled.h2`
     display: block;
     width: 150px;
     height: 2px;
-    background: #00CA00;
+    background: ${(props) => props.estadoColor};
     right: 1px;
     @media(max-width: 850px) {
     width: 120px;
