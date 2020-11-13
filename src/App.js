@@ -1,4 +1,5 @@
 import React from 'react'
+import moment from 'moment'
 
 import styled from 'styled-components'
 import Axios from 'axios';
@@ -6,26 +7,67 @@ import './App.css';
 import { equiposMarcador,estadioHora,tarjetas, goleadores } from './constantes'
 
 class MarcadoresEnVivo extends React.Component{
-  state={
-    listaMarcador: [],
-    listaEstadioHora:{},
-    tarjetasEquipo1: [],
-    tarjetasEquipo2: [],
-    goleadoresEquipo1: [],
-    goleadoresEquipo2: [],
+  constructor(props) {
+    super(props);
+    this.state={
+      listaMarcador: [],
+      listaEstadioHora:{},
+      tarjetasEquipo1: [],
+      tarjetasEquipo2: [],
+      goleadoresEquipo1: [],
+      goleadoresEquipo2: [],
+      cronometro: '0:00'
+    }
   }
+
 
   componentDidMount(){
     this.obtenerEquiposMarcador()
     this.obtenerEstadioHora()
     this.obtenerTarjetas()
     this.obtenerGoleadores()
+    let actual = moment();
+    let lunch1 = moment('2020-11-13T16:33:00');
+    let min = actual.diff(lunch1, 'minute');
+    // let seg = actual.diff(lunch1, 's');
+    
+    console.log('info', moment().second())
+
+    this.setState({
+      cronometro: `${min}:${moment().second()}`
+    })
+    
+    this.interval = setInterval(() => this.tick(), 1000);
+  }
+
+  tick() {
+    const { cronometro } = this.state
+
+    const min = parseInt(cronometro.split(':')[0])
+    const seg = parseInt(cronometro.split(':')[1])
+
+    let date = '00:00'
+    if (seg >= 59) {
+      date = `${min + 1}:00`
+    } else {
+      let seg2 = seg + 1
+      date = `${min}:${seg2 < 10 ? `0${seg2}` : seg2}`
+    }
+
+    if (min >= 45) date = `45:00 +5`
+
+    this.setState({
+      cronometro: date
+    })
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
   obtenerEquiposMarcador = async () => {
     try{
       const dataEquiposMarcador = await Axios.get(equiposMarcador)
-      // console.log('dataEquiposMarcador',dataEquiposMarcador.data.values)
       this.setState({
         listaMarcador : this.formatDatosEquiposMarcador(dataEquiposMarcador.data.values)
       })
@@ -101,6 +143,18 @@ class MarcadoresEnVivo extends React.Component{
         }
       }
     })
+    // let lunch1 = moment(info.hora);
+    // let actual = moment();
+    // let lunch1 = moment('2020-11-13T16:00:00');
+    // let min = actual.diff(lunch1, 'minute');
+    // let seg = actual.diff(lunch1, 'seconds');
+    
+    // console.log('info', min, seg)
+    // this.setState({
+    //   cronometro: `${min}:${seg}`
+    // })
+    
+    // this.interval = setInterval(() => this.tick(), 1000);
     return info
   }
 
@@ -166,9 +220,10 @@ class MarcadoresEnVivo extends React.Component{
       tarjetasEquipo1,
       listaEstadioHora,
       goleadoresEquipo1,
-      goleadoresEquipo2
-    } = this.state    
-    console.log('listaMarcador', listaEstadioHora)
+      goleadoresEquipo2,
+      cronometro
+    } = this.state
+
   return(
     <>
       <Redirect target="_blank" href={listaEstadioHora.link_nota}>
@@ -213,12 +268,12 @@ class MarcadoresEnVivo extends React.Component{
             <Marcador>{listaMarcador[0]?.marcador}</Marcador>
             <EnVivo>
               <TituloPrincipal estadoColor={listaEstadioHora.estado_color} >{listaEstadioHora.estado}</TituloPrincipal>
-              <TiempoPartido>{listaEstadioHora.hora}</TiempoPartido>
+              <TiempoPartido>{cronometro}</TiempoPartido>
               <Estadio>{listaEstadioHora.estadio}</Estadio>
             </EnVivo>
             <Marcador>{listaMarcador[1]?.marcador}</Marcador>
             <WrapperPais>
-              <ImgPais 
+              <ImgPais
                 src={listaMarcador[1]?.imagen}
               />
               <Pais>{listaMarcador[1]?.equipos}</Pais>
@@ -342,7 +397,6 @@ const ImgPais = styled.img`
     width: 40px;
   }
 `
-
 const Marcador = styled.div`
   height: 50px;
   width: 50px;
@@ -360,7 +414,6 @@ const Marcador = styled.div`
     font-size: 30px;
   }
 `
-
 const WrapperPais = styled.div`
   margin-left: 20px;
   margin-right: 20px;
@@ -372,7 +425,6 @@ const WrapperPais = styled.div`
     width: 50px;
   }
 `
-
 const Pais = styled.h5`
   text-transform: uppercase;
   color: gray;
@@ -382,7 +434,6 @@ const Pais = styled.h5`
     display: none;
   }
 `
-
 const Goleadores = styled.div`
   display: flex;
   font-size: 11px;
@@ -397,14 +448,6 @@ const Goleadores = styled.div`
     display: none;
   }
 `
-
-// const Tarjetas = styled.div`
-//   width: 8px;
-//   height: 12px;
-//   border: .5px solid #e6e6e6;
-//   background-color: ${(prop) => prop.color};
-// `
-
 const JugadorTarjeta = styled.div`
   position: relative;
   display: flex;
